@@ -1,83 +1,85 @@
-# Open-source Synthetic Electrochemistry Datasets
+# Open-Source Synthetic Electrochemistry Datasets
 
-这是 CA、CP、CV 合成电化学数据的标准化开源副本。原始目录
-`CA_synthetic_dataset/`、`CP_synthetic_dataset/` 和 `cv_dataset_grid/`
-没有被移动或改写。
+This directory contains standardized, publication-ready copies of synthetic
+chronoamperometry (CA), chronopotentiometry (CP), and cyclic voltammetry (CV)
+datasets.
 
-> 当前状态：预发布。数据已完成数量与校验和验证，但尚未选择开源许可证。
+## Dataset Size
 
-## 数据规模
-
-| 数据集 | 标准曲线 | 原始风格曲线 | 元数据 | 补充数量 |
+| Dataset | Standard Curves | Raw-Style Curves | Metadata Records | Added Samples |
 | --- | ---: | ---: | ---: | ---: |
-| CA | 40 个 CSV | — | 40 条 | 10 |
-| CP | 40 个 CSV | — | 40 条 | 0 |
-| CV | 405 个 CSV | 405 个 TXT | 405 条 | 210 |
+| CA | 40 CSV files | — | 40 | 10 |
+| CP | 40 CSV files | — | 40 | 0 |
+| CV | 405 CSV files | 405 TXT files | 405 | 210 |
 
-当前目录约 38 MB。所有 `dataset_id` 和文件名在各自数据集中唯一。
+The directory is approximately 38 MB. All `dataset_id` values and filenames are
+unique within their respective datasets.
 
-## 目录结构
+## Directory Structure
 
 ```text
-open_source_synthetic_datasets/
+Electrochemical_synthetic_datasets/
 ├── CA/
-│   ├── curves/          # 40 条标准化 CA 曲线
+│   ├── curves/          # 40 standardized CA curves
 │   └── metadata.jsonl
 ├── CP/
-│   ├── curves/          # 40 条标准化 CP 曲线
+│   ├── curves/          # 40 standardized CP curves
 │   └── metadata.jsonl
 ├── CV/
-│   ├── curves/          # 405 条标准 CV 曲线
-│   ├── raw/             # 405 条 CHI 风格带干扰曲线
+│   ├── curves/          # 405 standard CV curves
+│   ├── raw/             # 405 noisy, CHI-style curves
 │   └── metadata.jsonl
 └── README.md
 ```
 
-## 统一字段
+## Standardized Fields
 
-### CA 与 CP
+### CA and CP
 
-| 字段 | 含义 | 单位 |
+| Field | Description | Unit |
 | --- | --- | --- |
-| `time_s` | 时间 | s |
-| `potential_V` | 电位 | V |
-| `current_A` | 电流 | A |
+| `time_s` | Time | s |
+| `potential_V` | Potential | V |
+| `current_A` | Current | A |
 
-### CV 标准曲线
+### Standard CV Curves
 
-| 字段 | 含义 | 单位/取值 |
+| Field | Description | Unit or Value |
 | --- | --- | --- |
-| `voltage_V` | 扫描电位 | V |
-| `current_mA` | 电流 | mA |
-| `time_s` | 扫描时间 | s |
-| `scan_direction` | 扫描方向 | `1` 正扫，`-1` 反扫 |
+| `voltage_V` | Scanned potential | V |
+| `current_mA` | Current | mA |
+| `time_s` | Scan time | s |
+| `scan_direction` | Scan direction | `1` for forward, `-1` for reverse |
 
-CV 的 `raw/*.txt` 使用 `Potential/V, Current/A`，保留基线漂移、模拟工频干扰或
-两者叠加的合成原始信号。每个 TXT 只包含 1000 个数值点，扫速头已按对应元数据修正。
+The CV files under `raw/*.txt` use the fields `Potential/V, Current/A`. They
+retain synthetic baseline drift, simulated power-line interference, or both.
+Each TXT file contains exactly 1,000 numerical data points, and its scan-rate
+header has been corrected to match the corresponding metadata.
 
+## Metadata
 
-## 元数据
+Each line in a `metadata.jsonl` file describes one standard curve. Common fields
+include:
 
-每个 `metadata.jsonl` 文件一行对应一条标准曲线。通用字段包括：
+- `dataset_id`: a unique identifier within the dataset;
+- `file_name`: the curve path relative to its CA, CP, or CV directory;
+- `source_file`: the original repository path, or `null` for newly generated samples;
+- `source_group` or `physical_truth_status`: the sample source and label reliability;
+- `n_points`, physical parameters, or operating conditions specific to the experiment type.
 
-- `dataset_id`：数据集内唯一 ID；
-- `file_name`：相对于对应 CA、CP 或 CV 目录的曲线路径；
-- `source_file`：原仓库文件路径；新增样本为 `null`；
-- `source_group` 或 `physical_truth_status`：数据来源和标签可靠性；
-- `n_points`、物理参数或工况字段：不同实验类型的专属信息。
+CV metadata also includes `raw_file`, `condition`, `raw_type`, `ground_truth`,
+`empirical_features`, and `llm_base_params`. For the 15 legacy curves that had
+no original metadata index, fields that could not be recovered are set to
+`null`, while empirical extrema were recalculated from the standard curves.
 
-CV 另外包含 `raw_file`、`condition`、`raw_type`、`ground_truth`、
-`empirical_features` 和 `llm_base_params`。旧的 15 条无索引曲线中，无法恢复的字段为
-`null`，其经验极值由标准曲线重新计算。
-
-## 读取示例
+## Reading the Data
 
 ```python
 from pathlib import Path
 import json
 import pandas as pd
 
-root = Path("open_source_synthetic_datasets")
+root = Path("Electrochemical_synthetic_datasets")
 
 ca = pd.read_csv(next((root / "CA/curves").glob("*.csv")))
 cp = pd.read_csv(next((root / "CP/curves").glob("*.csv")))
@@ -87,16 +89,13 @@ with (root / "CV/metadata.jsonl").open(encoding="utf-8") as handle:
     cv_metadata = [json.loads(line) for line in handle if line.strip()]
 ```
 
-文件名包含空格、括号和 `µ`，建议使用 `pathlib.Path`，并始终以 UTF-8 读取元数据。
+Some filenames contain spaces, parentheses, or the `µ` character. Use
+`pathlib.Path` for path handling and always read metadata as UTF-8.
 
+## Usage and Data-Splitting Recommendations
 
-## 使用与划分建议
-
-- 数据全部为合成数据，不应被描述为真实仪器实验结果；
-- CV 可按材料或完整工况分组划分，以评估对未见材料和工况的泛化能力。
-
-## 正式发布前
-
-- [ ] 选择数据许可证并添加 `LICENSE`；
-- [ ] 添加作者、机构、联系方式、版本号和发布日期；
-
+- All records are synthetic and must not be described as results from physical
+  instrument experiments.
+- CV data may be grouped by material or complete operating condition when
+  splitting the dataset to evaluate generalization to unseen materials or
+  conditions.
