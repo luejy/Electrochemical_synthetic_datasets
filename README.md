@@ -68,9 +68,7 @@ include:
 - `n_points`, physical parameters, or operating conditions specific to the experiment type.
 
 CV metadata also includes `raw_file`, `condition`, `raw_type`, `ground_truth`,
-`empirical_features`, and `llm_base_params`. For the 15 legacy curves that had
-no original metadata index, fields that could not be recovered are set to
-`null`, while empirical extrema were recalculated from the standard curves.
+`empirical_features`, and `llm_base_params`. Empirical extrema were recalculated from the standard curves.
 
 ## Reading the Data
 
